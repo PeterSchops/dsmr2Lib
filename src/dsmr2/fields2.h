@@ -81,7 +81,7 @@ struct StringField : ParsedField<T> {
 // cannot really do any calculation with those values). So we just parse
 // into a string for now.
 template <typename T>
-struct TimestampField : StringField<T, 13, 13> { };
+struct TimestampField : StringField<T, 12, 13> { };
 
 // Value that is parsed as a three-decimal float, but stored as an
 // integer (by multiplying by 1000). Supports val() (or implicit cast to
@@ -153,11 +153,15 @@ struct DoubleLineTimestampedFixedField : public FixedField<T, _unit, _int_unit> 
     static_cast<T*>(this)->val().timestamp = res.result;
 
     // The timestamp is followed by 3 sets of numerical values, parse them
-    ParseResult<uint32_t> numres = NumParser::parse(0, NULL, res.next, end);
-    if (numres.err)
-      return numres;
+    //fix parse as string because the num value could contain other chars
+	res = StringParser::parse_string(0, 2, res.next, end);
+	if (res.err)
+      return res;
+//     ParseResult<uint32_t> numres = NumParser::parse(0, NULL, res.next, end);
+//     if (numres.err)
+//       return numres;
 
-    numres = NumParser::parse(0, NULL, numres.next, end);
+    ParseResult<uint32_t> numres = NumParser::parse(0, NULL, res.next, end);
     if (res.err)
       return numres;
 
@@ -291,14 +295,32 @@ DEFINE_FIELD(identification, String, ObisId(255, 255, 255, 255, 255, 255), RawFi
 
 /* Version information for P1 output */
 DEFINE_FIELD(p1_version, String, ObisId(1, 3, 0, 2, 8), StringField, 2, 2);
+
+
 /* Version information for P1 output (Belgium)*/
 DEFINE_FIELD(p1_version_be, String, ObisId(0, 0, 96, 1, 4), StringField, 0, 5);
+
+/* Belgium  peak power last quarter */
+DEFINE_FIELD(peak_pwr_last_q, FixedValue, ObisId(1, 0, 1, 4, 0), FixedField, units::kW, units::W);
+
+/* Belgium  highest peak power */
+DEFINE_FIELD(highest_peak_pwr, TimestampedFixedValue, ObisId(1, 0, 1, 6, 0), TimestampedFixedField, units::kW, units::W);
+
+DEFINE_FIELD(highest_peak_pwr_13mnd, String, ObisId(0, 0, 98, 1, 0), RawField);
 
 /* Date-time stamp of the P1 message */
 DEFINE_FIELD(timestamp, String, ObisId(0, 0, 1, 0, 0), TimestampField);
 
 /* Equipment identifier */
 DEFINE_FIELD(equipment_id, String, ObisId(0, 0, 96, 1, 1), StringField, 0, 96);
+
+
+//*************** SE 
+/* Meter Reading electricity delivered to client (SE) in 0,001 kWh */
+DEFINE_FIELD(energy_delivered_total, FixedValue, ObisId(1, 0, 1, 8, 0), FixedField, units::kWh, units::Wh);
+/* Meter Reading electricity delivered to client (Tariff 2) in 0,001 kWh */
+DEFINE_FIELD(energy_returned_total, FixedValue, ObisId(1, 0, 2, 8, 0), FixedField, units::kWh, units::Wh);
+//****************
 
 /* Meter Reading electricity delivered to client (Tariff 1) in 0,001 kWh */
 DEFINE_FIELD(energy_delivered_tariff1, FixedValue, ObisId(1, 0, 1, 8, 1), FixedField, units::kWh, units::Wh);
@@ -425,7 +447,7 @@ DEFINE_FIELD(mbus2_equipment_id_ntc,  String, ObisId(0, 2, 96, 1, 1), StringFiel
 DEFINE_FIELD(mbus2_valve_position, uint8_t, ObisId(0, 2, 24, 4, 0), IntField, units::none);
 /* Last 5-minute Meter reading and capture time
  * (Note: 4.x spec has "hourly meter reading") */
-DEFINE_FIELD(mbus2_delivered, TimestampedFixedValue, ObisId(0, 2, 24, 2, 1), TimestampedFixedField, units::GJ, units::MJ);
+DEFINE_FIELD(mbus2_delivered, TimestampedFixedValue, ObisId(0, 2, 24, 2, 1), TimestampedFixedField, units::m3, units::dm3);
 // OBIS: Last value of ‘not temperature corrected’ volume, including decimal values and capture time
 DEFINE_FIELD(mbus2_delivered_ntc, TimestampedFixedValue, ObisId(0, 2, 24, 2, 3), TimestampedFixedField, units::m3, units::dm3);
 /* Last hourly value (temperature compensated or not, depending on the display

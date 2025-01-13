@@ -122,6 +122,24 @@ class P1Reader {
       return this->_available;
     }
     
+    uint16_t GetCRC() {
+      return this->crc;
+    }
+    
+    String CompleteRaw() {
+      if ( buffer.length() == 0 ) return "";
+
+      char crc_str[5];
+      sprintf(crc_str,"%04X", this->crc);
+      return "/" + buffer + "!" + crc_str;	
+    }
+    
+    String GetCRC_str() {
+      char buf[5];
+      sprintf(buf,"%04X", this->crc);
+      return buf;
+    }
+    
     /**
      * Check for new data to read. Should be called regularly, such as
      * once every loop. Returns true if a complete message is available
@@ -155,7 +173,7 @@ class P1Reader {
             }
           }
           else
-          {
+          {  //no crc check
             this->_available = true;
           }
           if (once)
@@ -243,6 +261,11 @@ class P1Reader {
         _available = false;
       }
     }
+    
+    void ChangeStream(Stream *new_stream) {
+      stream = new_stream;
+      this->clear();
+    }
 
   protected:
     Stream *stream;
@@ -254,7 +277,7 @@ class P1Reader {
       CHECKSUM_STATE,
     };
     bool _available;
-    bool once, checksum;
+    bool once, checksum, invert_dtr = false;
     State state;
     String buffer;
     uint16_t crc;
