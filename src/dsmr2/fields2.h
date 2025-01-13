@@ -299,6 +299,8 @@ DEFINE_FIELD(p1_version, String, ObisId(1, 3, 0, 2, 8), StringField, 2, 2);
 
 /* Version information for P1 output (Belgium)*/
 DEFINE_FIELD(p1_version_be, String, ObisId(0, 0, 96, 1, 4), StringField, 0, 5);
+/* Grid information */
+DEFINE_FIELD(grid_configuration, String, ObisId(1, 0, 94, 32, 1), StringField, 0, 5);//1-0:94.32.1(400)
 
 /* Belgium  peak power last quarter */
 DEFINE_FIELD(peak_pwr_last_q, FixedValue, ObisId(1, 0, 1, 4, 0), FixedField, units::kW, units::W);
